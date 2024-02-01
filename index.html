@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ART VISTA</title>
+    <style>
+        /* Your CSS styles */
+        
+        
+        body {
+    width: auto;
+    height: auto;
+    font-family: Sans-serif;
+    background: linear-gradient(-75deg, #3483FF, #0E1827, #000C2C, #0A0939);
+    animation: gradient 6s ease infinite;
+    color: white;
+}
+
+@keyframes gradient {
+    0% {
+        background-position: 0% 100%;
+    }
+    50% {
+        background-position: 100% 0%;
+    }
+    100% {
+        background-position: 0% 100%;
+    }
+}
+
+.container {
+    
+    color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    
+    text-align: center;
+    font-family: Sans-serif;
+}
+
+.h12 {
+    font-size: 32px;
+    color: white;
+    font-family: Sans-serif;
+}
+
+p {
+    font-size: 13px;
+    color: #838383;
+    margin-left: 20px;
+    margin-right: 20px;
+    font-family: Sans-serif;
+}
+
+.gen-form input[type="text"] {
+    padding: 8px;
+    border: 2px solid #1976D2;
+    border-radius: 5px;
+    width: 290px;
+}
+
+#user-prompt {
+    align-items: center;
+    position: sticky;
+    bottom: 0;
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background-color: #FFFFFF;
+    color: black;
+    border-radius: 20px;
+    font-family: Sans-serif;
+}
+
+#generate {
+    background-color: #ffffff;
+    color: #1976D2;
+    border: none;
+    padding: 20px 44px;
+    border-radius: 40px;
+    cursor: pointer;
+}
+
+#regenerate {
+    background-color: transparent;
+    width: 40px;
+    height: 40px;
+    background-image: url('new.png');
+    background-size: cover;
+    border: none;
+    padding: 15px;
+    border-radius: 40px;
+}
+
+.result {
+    margin-top: 0px;
+}
+
+#loading {
+    display: none;
+    font-size: 15px;
+    color: white;
+    padding: 1px;
+    border-radius: 40px;
+    background: linear-gradient(to right, transparent 20%, transparent 40%, #4B88FF 50%, #4B88FF 55%, transparent 70%, transparent 100%);
+    background-size: 200% auto;
+    animation: shine 0.5s linear infinite;
+}
+
+@keyframes shine {
+    to {
+        background-position: 200% center;
+    }
+}
+
+#image-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    max-width:100%;
+    align-items: center;
+}
+
+#lo {
+    align-items: center;
+}
+
+#image-grid img {
+    max-width: 90%;
+    border-radius: 18px;
+    gap: 30px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.1s ease;
+    box-shadow: 0 0 80px black;
+    background: linear-gradient(to right, transparent 20%, transparent 40%, #4B88FF 50%, #4B88FF 55%, transparent 70%, transparent 100%);
+    background-size: 200% auto;
+    animation: shine 5s linear infinite;
+    align-items: center;
+}
+
+#image-grid img:hover {
+    
+    box-shadow: 0 0 40px #0073e6;
+    
+}
+
+#copy {
+    color: white;
+    margin: 10px;
+    font-size: 14px;
+}
+
+
+.res{
+    
+    font-size:px;
+}
+
+
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="h12">NEURO AI IMAGE GENERATOR</h1>
+        <p>Neuro AI Image Generator is a revolutionary tool for creating stunning visual masterpieces.</p>
+        <form action="" class="gen-form">
+            <input type="text" name="" id="user-prompt" placeholder="Type your prompt here" autocomplete="off"><br><br>
+            <button type="button" id="generate"><b>Generate</b></button><br><br>
+        </form><br><br>
+
+        <div class="result">
+            <div id="loading">
+               <h5>Generating...</h5>
+            </div><br>
+            <div id="image-grid"></div>
+        </div><br>
+        <div id="copy">
+            <br>
+            <center>
+                <button type="button" id="regenerate" class="icon-button"></button><br><br>
+            </center>
+
+
+            <br><br>
+            <small>© seja menath de silva. All rights reserved. 2023</small>
+        </div>
+    </div>
+
+    <script>
+        
+        // ... (existing JavaScript code)
+        
+        
+        const apiKey = "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";
+const maxImages = 24;
+let selectedImageNumber = null;
+
+function getRandomNumber(min, max) {
+    return Math.floor(Math.random() * (max - min + 1000)) + min;
+}
+
+function disableGenerateButton() {
+    document.getElementById("generate").disabled = true;
+}
+
+function enableGenerateButton() {
+    document.getElementById("generate").disabled = false;
+}
+
+function clearImageGrid() {
+    const imageGrid = document.getElementById("image-grid");
+    imageGrid.innerHTML = "";
+}
+
+async function generateImages(input) {
+    disableGenerateButton();
+    clearImageGrid();
+
+    const loading = document.getElementById("loading");
+    loading.style.display = "block";
+
+    const imageUrls = [];
+
+    for (let i = 0; i < maxImages; i++) {
+        const randomNumber = getRandomNumber(1, 10000);
+        const prompt = `${input} ${randomNumber}`;
+
+        const response = await fetch(
+            "https://api-inference.huggingface.co/models/prompthero/openjourney",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${apiKey}`,
+                },
+                body: JSON.stringify({
+                    inputs: prompt
+                }),
+            }
+        );
+
+        if (!response.ok) {
+            alert("Failed to generate image. Please check your internet connection.");
+        }
+
+        const blob = await response.blob();
+        const imgUrl = URL.createObjectURL(blob);
+        imageUrls.push(imgUrl);
+
+        const img = document.createElement("img");
+        img.src = imgUrl;
+        img.alt = `Generating-error-${i + 1}`;
+        img.onclick = () => downloadImage(imgUrl, i);
+        document.getElementById("image-grid").appendChild(img);
+    }
+
+    loading.style.display = "none";
+    enableGenerateButton();
+
+    selectedImageNumber = null;
+}
+
+document.getElementById("generate").addEventListener('click', () => {
+    const input = document.getElementById("user-prompt").value;
+    generateImages(input);
+});
+
+
+
+let count = 10;
+    const updateCountdown = () => {
+        document.getElementById('loading').innerHTML = `<h6 class="res">  Response time   ( ${count}ms )<h/6><br><b><b5> <br>Generating...</h5>`;
+        count++;
+        if (count > 100) {
+            count = 10; // Reset countdown
+        }
+    };
+    const countdown = setInterval(updateCountdown, 10);
+
+    // Call updateCountdown once to start the countdown immediately
+    updateCountdown();
+    
+    
+    
+    
+    
+    function downloadImage(imageUrl, index) {
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.download = `art-${index + 1}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+
+
+
+    </script>
+<script src="https://www.drv.tw/inc/wd.js?s=dub9yt9jaous2llnwnuokw"></script></body>
+</html>
